@@ -246,6 +246,63 @@ document.querySelector('#reset-button').addEventListener('click', () => {
     populateManifestations(innerSolarSystem.masses);
 }, false);
 
+/*
+ * Code for adding masses with you mouse
+ */
+
+let mousePressX = 0;
+let mousePressY = 0;
+let currentMouseX = 0;
+let currentMouseY = 0;
+let dragging = false;
+
+canvas.addEventListener(
+    "mousedown",
+    e => {
+        mousePressX = e.clientX;
+        mousePressY = e.clientY;
+        dragging = true;
+    },
+    false
+);
+
+canvas.addEventListener(
+    "mousemove",
+    e => {
+        currentMouseX = e.clientX;
+        currentMouseY = e.clientY;
+    },
+    false
+);
+
+const massesList = document.querySelector("#masses-list");
+
+canvas.addEventListener(
+    "mouseup",
+    e => {
+        const x = (mousePressX - width / 2) / scale;
+        const y = (mousePressY - height / 2) / scale;
+        const z = 0;
+        const vx = (e.clientX - mousePressX) / 35;
+        const vy = (e.clientY - mousePressY) / 35;
+        const vz = 0;
+
+        innerSolarSystem.masses.push({
+            m: parseFloat(massesList.value),
+            x,
+            y,
+            z,
+            vx,
+            vy,
+            vz,
+            manifestation: new Manifestation(ctx, trailLength, radius)
+        });
+
+        dragging = false;
+    },
+    false
+);
+
 const animate = () => {
     innerSolarSystem
         .updatePositionVectors()
