@@ -191,3 +191,87 @@ class Manifestation {
         }
     }
 }
+
+/*
+ * Get the canvas element and its context from the DOM
+ */
+
+const canvas = document.querySelector("#canvas");
+const ctx = canvas.getContext("2d");
+
+/*
+ * Full screen action
+ */
+
+const width = (canvas.width = window.innerWidth);
+const height = (canvas.height = window.innerHeight);
+
+/*
+ * Animation constants
+ *
+ * scale is the number of pixels per astronomical units
+ *
+ * radius is the radius of the circle that represents the current position of a mass
+ *
+ * trailLength is the number of previous positions that we should draw in the motion trail
+ */
+
+const scale = 70;
+const radius = 4;
+const trailLength = 35;
+
+/*
+ * Iterate over the masses being simulated and add a visual manifestation for each of them
+ */
+
+const populateManifestations = masses => {
+    masses.forEach(
+        mass =>
+            (mass["manifestation"] = new Manifestation(
+                ctx,
+                trailLength,
+                radius
+            ))
+    );
+};
+
+populateManifestations(innerSolarSystem.masses);
+
+/*
+ * Click the reset button to reset the simulation
+ */
+
+document.querySelector('#reset-button').addEventListener('click', () => {
+    innerSolarSystem.masses = JSON.parse(JSON.stringify(masses));
+    populateManifestations(innerSolarSystem.masses);
+}, false);
+
+const animate = () => {
+    innerSolarSystem
+        .updatePositionVectors()
+        .updateAccelerationVectors()
+        .updateVelocityVectors();
+
+    ctx.clearRect(0, 0, width, height);
+
+    const massesLen = innerSolarSystem.masses.length;
+
+    for (let i = 0; i < massesLen; i++) {
+        const massI = innerSolarSystem.masses[i];
+
+        const x = width / 2 + massI.x * scale;
+        const y = height / 2 + massI.y * scale;
+
+        massI.manifestation.draw(x, y);
+
+        if (massI.name) {
+            ctx.font = "14px Arial";
+            ctx.fillText(massI.name, x + 12, y + 4);
+            ctx.fill();
+        }
+    }
+
+    requestAnimationFrame(animate);
+};
+
+animate();
