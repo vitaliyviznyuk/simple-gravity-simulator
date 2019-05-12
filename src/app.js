@@ -303,29 +303,83 @@ canvas.addEventListener(
     false
 );
 
+/*
+ * The animate function that sets everything in motion.
+ * We run it 60 times a second with the help of requestAnimationFrame
+ */
+
 const animate = () => {
+    /*
+     * Advance our simulation by one step
+     */
+
     innerSolarSystem
         .updatePositionVectors()
         .updateAccelerationVectors()
         .updateVelocityVectors();
 
+    /*
+     * Clear the canvas in preparation for the next drawing cycle
+     */
+
     ctx.clearRect(0, 0, width, height);
 
     const massesLen = innerSolarSystem.masses.length;
 
+    /*
+     * Let us draw some masses!
+     */
+
     for (let i = 0; i < massesLen; i++) {
         const massI = innerSolarSystem.masses[i];
+
+        /*
+         * The origin (x = 0, y = 0) of the canvas coordinate system is in the top left corner
+         * To prevent our simulation from being centered on the top left corner, include the x and y offsets
+         * So that it is centered smack in the middle of the canvas
+         */
 
         const x = width / 2 + massI.x * scale;
         const y = height / 2 + massI.y * scale;
 
+        /*
+         * Draw our motion trail
+         */
+
         massI.manifestation.draw(x, y);
+
+        /*
+         * If the mass has a name, draw it onto the canvas next to the leading circle of the motion trail
+         */
 
         if (massI.name) {
             ctx.font = "14px Arial";
             ctx.fillText(massI.name, x + 12, y + 4);
             ctx.fill();
         }
+
+        /*
+         * Stop masses from escaping the bounds of the viewport
+         * If either condition is met, the velocity of the mass will be reversed
+         * And the mass will bounce back into the inner solar system
+         */
+
+        if (x < radius || x > width - radius)
+            massI.vx = -massI.vx;
+        if (y < radius || y > height - radius)
+            massI.vy = -massI.vy;
+    }
+
+    /*
+     * Draw the line which indicates direction and velocity of a mass that is about to be added when the mouse is being dragged
+     */
+
+    if (dragging) {
+        ctx.beginPath();
+        ctx.moveTo(mousePressX, mousePressY);
+        ctx.lineTo(currentMouseX, currentMouseY);
+        ctx.strokeStyle = "red";
+        ctx.stroke();
     }
 
     requestAnimationFrame(animate);
